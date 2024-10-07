@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Book;
 use Illuminate\Http\Request;
 
 class BookController extends Controller
@@ -9,9 +10,33 @@ class BookController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $title = $request->input('title');
+        $filter = $request->input('filter', ''); #if filter variable is not there assign '' empty
+
+        #when is used to first check if the data exist
+        #if data exists anynomous function will be called
+        //    $book = Book::when($title , function($query, $title){
+        //      return $query->title($title);
+        //    })->get();
+        // this above function can also be written as arrow function
+        $books = Book::when(
+            $title,
+            fn($query, $title) =>
+            $query->title($title)
+        );
+        $books = match($filter){
+            'popular_last_month' => $books->popularLastMonth(),
+            'popular_last_6months' => $books->popularLast6Months(),
+            'highest_rated_last_month' => $books->highestRatedLastMonth(),
+            'highest_rated_last_6months' => $books->highestRatedLast6Months(),
+            default => $books->latest()
+        };
+        
+        $books = $books->get();
+
+        return view('books.index', ['books' => $books]);
     }
 
     /**
@@ -33,9 +58,11 @@ class BookController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Book $book)
     {
-        //
+        return view('books.show',
+          ['book' => $book->load(['review' => fn($query) => $query->latest()])]
+        );
     }
 
     /**

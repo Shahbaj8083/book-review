@@ -16,4 +16,11 @@ class Review extends Model
     public function book(){
         return $this->belongsTo(Book::class);
     }
+
+    #This event will not run when we mass assign the data using update method
+    protected static function booted()
+    {
+        static::updated(fn(Review $review) => cache()->forget('book:'.$review->book_id));
+        static::deleted(fn(Review $review) => cache()->forget('book:'.$review->book_id));
+    }
 }

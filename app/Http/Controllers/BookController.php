@@ -26,15 +26,22 @@ class BookController extends Controller
             fn($query, $title) =>
             $query->title($title)
         );
-        $books = match($filter){
+        $books = match ($filter) {
             'popular_last_month' => $books->popularLastMonth(),
             'popular_last_6months' => $books->popularLast6Months(),
             'highest_rated_last_month' => $books->highestRatedLastMonth(),
             'highest_rated_last_6months' => $books->highestRatedLast6Months(),
             default => $books->latest()
         };
-        
-        $books = $books->get();
+
+        #we need unique cache key
+        $cacheKey = 'books:' . $filter . ':' . $title;
+        // $books = $books->get();
+        $books = cache()->remember(
+            $cacheKey,/*It will store the data inside books key */
+            3600/*store in cache for 1 hr*/,
+            fn() => $books->get()
+        );
 
         return view('books.index', ['books' => $books]);
     }
@@ -60,9 +67,9 @@ class BookController extends Controller
      */
     public function show(Book $book)
     {
-        return view('books.show',
-          ['book' => $book->load(['review' => fn($query) => $query->latest()])]
-        );
+        $cacheKey = 'book:' . $book->id;
+        $book = cache()->remember($cacheKey, 3600, fn() => $book->load(['review' => fn($query) => $query->latest()]));
+        return view('books.show', ['book' => $book]);
     }
 
     /**

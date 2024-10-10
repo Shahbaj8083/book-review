@@ -8,11 +8,12 @@ use Illuminate\Http\Request;
 class ReviewController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Apply the throttle middleware to the store method to limit request frequency,
+     * preventing multiple reviews at a time.
      */
-    public function index()
+    public function __construct()
     {
-        //
+        $this->middleware('throttle:review')->only('store');
     }
 
     /**
@@ -34,37 +35,5 @@ class ReviewController extends Controller
         ]);
         $book->review()->create($data);
         return redirect()->route('book.show', $book);
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
     }
 }

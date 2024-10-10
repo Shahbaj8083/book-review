@@ -40,7 +40,7 @@
                 </div>
                 <div>
                     <div class="book-rating">
-                        rating {{ number_format($book->review_avg_rating, 1)}}
+                        <x-star-rating :rating="$book->review_avg_rating" />
                     </div>
                     <div class="book-review-count">
                         {{--Str::plural will check the first parameter i.e review and will make it plural
